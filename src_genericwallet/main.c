@@ -34,7 +34,6 @@
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
-
 unsigned int io_seproxyhal_touch_settings(const bagl_element_t *e);
 unsigned int io_seproxyhal_touch_exit(const bagl_element_t *e);
 unsigned int io_seproxyhal_touch_tx_ok(const bagl_element_t *e);
@@ -72,7 +71,9 @@ void finalizeParsing(bool);
 #define OFFSET_CDATA 5
 
 #define WEI_TO_ETHER 18
+#define AUTH_REQUESTS 2
 
+uint32_t requestCount = 0;
 static const uint8_t const TOKEN_TRANSFER_ID[] = { 0xa9, 0x05, 0x9c, 0xbb };
 typedef struct tokenContext_t {
     uint8_t data[4 + 32 + 32];
@@ -1778,7 +1779,7 @@ void finalizeParsing(bool direct) {
   uint8_t *ticker = PIC(chainConfig->coinName);
   uint8_t *feeTicker = PIC(chainConfig->coinName);
   uint8_t tickerOffset = 0;
-
+  uint32_t authRequests = AUTH_REQUESTS;
   // Verify the chain
   if (chainConfig->chainId != 0) {
     uint32_t v = getV(&tmpContent.txContent);
@@ -1886,13 +1887,20 @@ void finalizeParsing(bool direct) {
   }
   strings.common.maxFee[tickerOffset + i] = '\0';
 
-#if defined(TARGET_BLUE)
-  ui_approval_transaction_blue_init();
-#elif defined(TARGET_NANOS)
-  ux_step = 0;
-  ux_step_count = 5;
-  UX_DISPLAY(ui_approval_nanos, ui_approval_prepro);   
-#endif // #if TARGET_ID
+
+  if(requestCount == 0 || requestCount >= authRequests){
+    requestCount = 1;
+    #if defined(TARGET_BLUE)
+      ui_approval_transaction_blue_init();
+    #elif defined(TARGET_NANOS)
+      ux_step = 0;
+      ux_step_count = 5;
+      UX_DISPLAY(ui_approval_nanos, ui_approval_prepro);
+    #endif // #if TARGET_ID
+  } else {
+    io_seproxyhal_touch_tx_ok(NULL);
+    requestCount++;
+  }
 }
 
 void handleSign(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
