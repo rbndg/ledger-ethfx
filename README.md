@@ -1,5 +1,5 @@
-# blue-app-eth
-Ethereum wallet application framework for Ledger Blue and Nano S
+# Ledger-Ethfx App
+Ethfx wallet application for Ledger Blue and Nano S
 
 This follows the specification available in the doc/ folder
 
