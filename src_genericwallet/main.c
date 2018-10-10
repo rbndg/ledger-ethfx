@@ -73,7 +73,6 @@ void finalizeParsing(bool);
 #define WEI_TO_ETHER 18
 #define AUTH_REQUESTS 2
 
-uint32_t requestCount = 0;
 static const uint8_t const TOKEN_TRANSFER_ID[] = { 0xa9, 0x05, 0x9c, 0xbb };
 typedef struct tokenContext_t {
     uint8_t data[4 + 32 + 32];
@@ -197,6 +196,20 @@ const bagl_element_t* ui_menu_item_out_over(const bagl_element_t* e) {
 #define COLOR_BG_1 0xF9F9F9
 #define COLOR_APP 0x0ebdcf
 #define COLOR_APP_LIGHT 0x87dee6
+
+// Manage showing and hiding confirmation
+uint32_t requestCount = 0;
+bool showUserConfirmation(void);
+bool showUserConfirmation(){
+  uint32_t authRequests = AUTH_REQUESTS;
+  if(requestCount == 0 || requestCount >= authRequests){
+    requestCount = 1;
+    return true;
+  } else {
+    requestCount++;
+    return false;
+  }
+}
 
 #if defined(TARGET_BLUE)
 
@@ -1671,13 +1684,18 @@ customStatus_e customProcessor(txContext_t *context) {
                 dataContext.rawDataContext.fieldOffset = 0;                    
                 if (fieldPos == 0) {
                     array_hexstr(strings.tmp.tmp, dataContext.rawDataContext.data, 4);
-#if defined(TARGET_BLUE)
-                    UX_DISPLAY(ui_data_selector_blue, ui_data_selector_blue_prepro);
-#elif defined(TARGET_NANOS)
-                    ux_step = 0;
-                    ux_step_count = 2;
-                    UX_DISPLAY(ui_data_selector_nanos, ui_data_selector_prepro);
-#endif // #if TARGET_ID
+                    if(showUserConfirmation()){
+                      #if defined(TARGET_BLUE)
+                        UX_DISPLAY(ui_data_selector_blue, ui_data_selector_blue_prepro);
+                      #elif defined(TARGET_NANOS)
+                        ux_step = 0;
+                        ux_step_count = 2;
+                        UX_DISPLAY(ui_data_selector_nanos, ui_data_selector_prepro);
+                      #endif // #if TARGET_ID
+                    } else{
+                      io_seproxyhal_touch_data_ok(NULL);
+                    }
+
                 }
                 else {
                     uint32_t offset = 0;
@@ -1689,13 +1707,17 @@ customStatus_e customProcessor(txContext_t *context) {
                             strings.tmp.tmp[offset++] = ':';
                         }
                     }
-#if defined(TARGET_BLUE)
-                    UX_DISPLAY(ui_data_parameter_blue, ui_data_parameter_blue_prepro);
-#elif defined(TARGET_NANOS)
-                    ux_step = 0;
-                    ux_step_count = 2;
-                    UX_DISPLAY(ui_data_parameter_nanos, ui_data_parameter_prepro);
-#endif // #if TARGET_ID                        
+                    if(showUserConfirmation()){
+                      #if defined(TARGET_BLUE)
+                        UX_DISPLAY(ui_data_parameter_blue, ui_data_parameter_blue_prepro);
+                      #elif defined(TARGET_NANOS)
+                        ux_step = 0;
+                        ux_step_count = 2;
+                        UX_DISPLAY(ui_data_parameter_nanos, ui_data_parameter_prepro);
+                      #endif // #if TARGET_ID      
+                    } else{
+                      io_seproxyhal_touch_data_ok(NULL);
+                    }                  
                 }
             }
             else {
@@ -1779,7 +1801,6 @@ void finalizeParsing(bool direct) {
   uint8_t *ticker = PIC(chainConfig->coinName);
   uint8_t *feeTicker = PIC(chainConfig->coinName);
   uint8_t tickerOffset = 0;
-  uint32_t authRequests = AUTH_REQUESTS;
   // Verify the chain
   if (chainConfig->chainId != 0) {
     uint32_t v = getV(&tmpContent.txContent);
@@ -1887,9 +1908,7 @@ void finalizeParsing(bool direct) {
   }
   strings.common.maxFee[tickerOffset + i] = '\0';
 
-
-  if(requestCount == 0 || requestCount >= authRequests){
-    requestCount = 1;
+  if(showUserConfirmation()){
     #if defined(TARGET_BLUE)
       ui_approval_transaction_blue_init();
     #elif defined(TARGET_NANOS)
@@ -1899,9 +1918,10 @@ void finalizeParsing(bool direct) {
     #endif // #if TARGET_ID
   } else {
     io_seproxyhal_touch_tx_ok(NULL);
-    requestCount++;
   }
+
 }
+
 
 void handleSign(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
   UNUSED(tx);
