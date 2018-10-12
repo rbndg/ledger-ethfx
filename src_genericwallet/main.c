@@ -71,7 +71,7 @@ void finalizeParsing(bool);
 #define OFFSET_CDATA 5
 
 #define WEI_TO_ETHER 18
-#define AUTH_REQUESTS 2
+#define AUTH_REQUESTS 10
 
 static const uint8_t const TOKEN_TRANSFER_ID[] = { 0xa9, 0x05, 0x9c, 0xbb };
 typedef struct tokenContext_t {
@@ -1601,6 +1601,7 @@ tokenDefinition_t* getKnownToken() {
 
 
 customStatus_e customProcessor(txContext_t *context) {
+    PRINTF("Missing function selector: %d\n",requestCount);
     if ((context->currentField == TX_RLP_DATA) &&
         (context->currentFieldLength != 0)) {
         dataPresent = true;
@@ -1717,7 +1718,7 @@ customStatus_e customProcessor(txContext_t *context) {
                       #endif // #if TARGET_ID      
                     } else{
                       io_seproxyhal_touch_data_ok(NULL);
-                    }                  
+                    }
                 }
             }
             else {
@@ -2059,14 +2060,19 @@ void handleSignPersonalMessage(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint
     strings.common.fullAddress[HASH_LENGTH / 2 * 2 + 2] = '.';
     array_hexstr(strings.common.fullAddress + HASH_LENGTH / 2 * 2 + 3, hashMessage + 32 - HASH_LENGTH / 2, HASH_LENGTH / 2);
 
-#if defined(TARGET_BLUE)
-    ui_approval_message_sign_blue_init();
-#elif defined(TARGET_NANOS)
-    ux_step = 0;
-    ux_step_count = 2;
-    UX_DISPLAY(ui_approval_signMessage_nanos,
-                   ui_approval_signMessage_prepro);
-#endif // #if TARGET_ID
+  if(showUserConfirmation()){
+    #if defined(TARGET_BLUE)
+        ui_approval_message_sign_blue_init();
+    #elif defined(TARGET_NANOS)
+        ux_step = 0;
+        ux_step_count = 2;
+        UX_DISPLAY(ui_approval_signMessage_nanos,
+                      ui_approval_signMessage_prepro);
+    #endif // #if TARGET_ID
+  } else {
+    io_seproxyhal_touch_signMessage_ok(NULL);
+  }
+
 
     *flags |= IO_ASYNCH_REPLY;
 
