@@ -71,7 +71,7 @@ void finalizeParsing(bool);
 #define OFFSET_CDATA 5
 
 #define WEI_TO_ETHER 18
-#define AUTH_REQUESTS 10
+#define CONFIRM_REQUESTS 5
 
 static const uint8_t const TOKEN_TRANSFER_ID[] = { 0xa9, 0x05, 0x9c, 0xbb };
 typedef struct tokenContext_t {
@@ -198,15 +198,17 @@ const bagl_element_t* ui_menu_item_out_over(const bagl_element_t* e) {
 #define COLOR_APP_LIGHT 0x87dee6
 
 // Manage showing and hiding confirmation
-uint32_t requestCount = 0;
+volatile int requestCount;
 bool showUserConfirmation(void);
 bool showUserConfirmation(){
-  uint32_t authRequests = AUTH_REQUESTS;
-  if(requestCount == 0 || requestCount >= authRequests){
-    requestCount = 1;
+  int confirmRequests = CONFIRM_REQUESTS;
+  requestCount++;
+  if(requestCount == 1){
     return true;
   } else {
-    requestCount++;
+    if(requestCount == confirmRequests){
+      requestCount = 0;
+    }
     return false;
   }
 }
@@ -1601,7 +1603,6 @@ tokenDefinition_t* getKnownToken() {
 
 
 customStatus_e customProcessor(txContext_t *context) {
-    PRINTF("Missing function selector: %d\n",requestCount);
     if ((context->currentField == TX_RLP_DATA) &&
         (context->currentFieldLength != 0)) {
         dataPresent = true;
@@ -2357,7 +2358,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
                 }
                 dataAllowed = N_storage.dataAllowed;
                 contractDetails = N_storage.contractDetails;
-
+                requestCount = 0;
                 USB_power(0);
                 USB_power(1);
 
