@@ -200,16 +200,22 @@ const bagl_element_t* ui_menu_item_out_over(const bagl_element_t* e) {
 // Manage showing and hiding confirmation
 volatile int requestCount;
 bool showUserConfirmation(void);
+void incRequestCount(void);
+
 bool showUserConfirmation(){
   int confirmRequests = CONFIRM_REQUESTS;
-  requestCount++;
-  if(requestCount == 1){
+  if(requestCount == confirmRequests){
     return true;
   } else {
-    if(requestCount == confirmRequests){
-      requestCount = 0;
-    }
     return false;
+  }
+}
+
+void incRequestCount(){
+  int confirmRequests = CONFIRM_REQUESTS;
+  requestCount++;
+  if(requestCount == confirmRequests){
+    requestCount = 0;
   }
 }
 
@@ -1171,6 +1177,7 @@ unsigned int io_seproxyhal_touch_tx_ok(const bagl_element_t *e) {
     uint32_t tx = 0;
     uint8_t rLength, sLength, rOffset, sOffset;
     uint32_t v = getV(&tmpContent.txContent);
+    incRequestCount();
     os_perso_derive_node_bip32(CX_CURVE_256K1, tmpCtx.transactionContext.bip32Path,
                                tmpCtx.transactionContext.pathLength,
                                privateKeyData, NULL);
@@ -1282,6 +1289,7 @@ unsigned int io_seproxyhal_touch_signMessage_cancel(const bagl_element_t *e) {
 
 unsigned int io_seproxyhal_touch_data_ok(const bagl_element_t *e) {
     parserStatus_e txResult = USTREAM_FINISHED;
+    incRequestCount();
     txResult = continueTx(&txContext);
     switch (txResult) {
     case USTREAM_SUSPENDED:
