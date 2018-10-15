@@ -56,6 +56,7 @@ void finalizeParsing(bool);
 #define INS_SIGN 0x04
 #define INS_GET_APP_CONFIGURATION 0x06
 #define INS_SIGN_PERSONAL_MESSAGE 0x08
+#define INS_SHOW_CONFIRMATION 0x09
 #define P1_CONFIRM 0x01
 #define P1_NON_CONFIRM 0x00
 #define P2_NO_CHAINCODE 0x00
@@ -204,7 +205,7 @@ void incRequestCount(void);
 
 bool showUserConfirmation(){
   int confirmRequests = CONFIRM_REQUESTS;
-  if(requestCount == confirmRequests){
+  if(requestCount == 0 || requestCount == confirmRequests){
     return true;
   } else {
     return false;
@@ -1990,6 +1991,17 @@ void handleSign(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength
   }  
 }
 
+void handleWillShowUserConfirmation(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
+  UNUSED(p1);
+  UNUSED(p2);
+  UNUSED(workBuffer);
+  UNUSED(dataLength);
+  UNUSED(flags);
+  G_io_apdu_buffer[0] = (showUserConfirmation() ? 0x01 : 0x00);
+  *tx = 1;
+  THROW(0x9000);
+}
+
 void handleGetAppConfiguration(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
   UNUSED(p1);
   UNUSED(p2);
@@ -2114,6 +2126,10 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
 
         case INS_SIGN_PERSONAL_MESSAGE: 
           handleSignPersonalMessage(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
+          break;
+        
+        case INS_SHOW_CONFIRMATION:
+          handleWillShowUserConfirmation(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
           break;
 
 #if 0
