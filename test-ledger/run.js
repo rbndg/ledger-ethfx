@@ -53,12 +53,22 @@ const showConfirmation = async () =>{
 }
 
 
+const resetRequestCount = async () =>{
+    const eth = await transport();
+  console.log('eth.resetRequestCount');
+  const resetRequestCount = await eth.resetRequestCount()
+  console.log('resetRequestCount...');
+  console.log(resetRequestCount);
+}
+
+
 
 (async ()=>{
   console.log("Running ....");
     try{
       // await getAddress()
-      await showConfirmation()
+      // await showConfirmation()
+      await resetRequestCount()
       // await signTx()
     }catch(err){
         console.log(err);
