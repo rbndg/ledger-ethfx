@@ -56,7 +56,8 @@ void finalizeParsing(bool);
 #define INS_SIGN 0x04
 #define INS_GET_APP_CONFIGURATION 0x06
 #define INS_SIGN_PERSONAL_MESSAGE 0x08
-#define INS_SHOW_CONFIRMATION 0x09
+#define INS_SHOW_CONFIRMATION 0xa1
+#define INS_RESET_REQUEST_COUNT 0xa2
 #define P1_CONFIRM 0x01
 #define P1_NON_CONFIRM 0x00
 #define P2_NO_CHAINCODE 0x00
@@ -202,6 +203,7 @@ const bagl_element_t* ui_menu_item_out_over(const bagl_element_t* e) {
 volatile int requestCount;
 bool showUserConfirmation(void);
 void incRequestCount(void);
+void resetRequestCount(void);
 
 bool showUserConfirmation(){
   int confirmRequests = CONFIRM_REQUESTS;
@@ -216,8 +218,12 @@ void incRequestCount(){
   int confirmRequests = CONFIRM_REQUESTS;
   requestCount++;
   if(requestCount == confirmRequests){
-    requestCount = 0;
+    resetRequestCount();
   }
+}
+
+void resetRequestCount(){
+  requestCount = 0;
 }
 
 #if defined(TARGET_BLUE)
@@ -1542,6 +1548,9 @@ tokenDefinition_t* getKnownToken() {
         case CHAIN_KIND_EOSCLASSIC:
             numTokens = NUM_TOKENS_EOSCLASSIC;
             break;
+        case CHAIN_KIND_ETHFINEX:
+            numTokens = NUM_TOKENS_ETHEREUM;
+            break;
     }
     for (i=0; i<numTokens; i++) {            
         switch(chainConfig->kind) {
@@ -1601,6 +1610,9 @@ tokenDefinition_t* getKnownToken() {
                 break;
             case CHAIN_KIND_EOSCLASSIC:
                 currentToken = PIC(&TOKENS_EOSCLASSIC[i]);
+                break;
+            case CHAIN_KIND_ETHFINEX:
+                currentToken = PIC(&TOKENS_ETHEREUM[i]);
                 break;
         } 
         if (os_memcmp(currentToken->address, tmpContent.txContent.destination, 20) == 0) {
@@ -2002,6 +2014,19 @@ void handleWillShowUserConfirmation(uint8_t p1, uint8_t p2, uint8_t *workBuffer,
   THROW(0x9000);
 }
 
+
+void handleResetRequestCount(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
+  UNUSED(p1);
+  UNUSED(p2);
+  UNUSED(workBuffer);
+  UNUSED(dataLength);
+  UNUSED(flags);
+  resetRequestCount();
+  G_io_apdu_buffer[0] = 0x01;
+  *tx = 1;
+  THROW(0x9000);
+}
+
 void handleGetAppConfiguration(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
   UNUSED(p1);
   UNUSED(p2);
@@ -2130,6 +2155,10 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
         
         case INS_SHOW_CONFIRMATION:
           handleWillShowUserConfirmation(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
+          break;    
+
+        case INS_RESET_REQUEST_COUNT:
+          handleResetRequestCount(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
           break;
 
 #if 0
