@@ -27,10 +27,10 @@ APPVERSION_M=1
 APPVERSION_N=1
 APPVERSION_P=5
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
-APP_LOAD_FLAGS= --appFlags 0x40 --dep Ethereum:$(APPVERSION)
+APP_LOAD_FLAGS= --appFlags 0x40 --dep EthFinex:$(APPVERSION)
 
 ifeq ($(CHAIN),)
-CHAIN=ethereum
+CHAIN=ethfinex
 endif
 
 ifeq ($(CHAIN),ethereum)
@@ -38,7 +38,7 @@ ifeq ($(CHAIN),ethereum)
 #APP_LOAD_PARAMS += --path "44'/60'"
 APP_LOAD_PARAMS += --path "44'"
 DEFINES += CHAINID_UPCASE=\"ETHEREUM\" CHAINID_COINNAME=\"ETH\" CHAIN_KIND=CHAIN_KIND_ETHEREUM CHAIN_ID=0
-APPNAME = "Bitfinex"
+APPNAME = "Ethereum"
 DEFINES_LIB=
 APP_LOAD_FLAGS=--appFlags 0x840
 else ifeq ($(CHAIN),ellaism)
@@ -117,6 +117,12 @@ else ifeq ($(CHAIN),eosclassic)
 APP_LOAD_PARAMS += --path "44'/2018'"
 DEFINES += CHAINID_UPCASE=\"EOSCLASSIC\" CHAINID_COINNAME=\"EOSC\" CHAIN_KIND=CHAIN_KIND_EOSCLASSIC CHAIN_ID=20
 APPNAME = "EOSClassic"
+else ifeq ($(CHAIN),ethfinex)
+APP_LOAD_PARAMS += --path "44'"
+DEFINES += CHAINID_UPCASE=\"ETHFINEX\" CHAINID_COINNAME=\"EFX\" CHAIN_KIND=CHAIN_KIND_ETHFINEX CHAIN_ID=3750
+APPNAME = "Ethfinex"
+DEFINES_LIB=
+APP_LOAD_FLAGS=--appFlags 0x840
 else
 ifeq ($(filter clean,$(MAKECMDGOALS)),)
 $(error Unsupported CHAIN - use ethereum, ethereum_classic, expanse, poa, rsk, rsk_testnet, ubiq, wanchain, kusd, musicoin, pirl, akroma, atheios, callisto, ethersocial, ellaism, ether1, ethergem, gochain, eosclassic)
