@@ -16,6 +16,17 @@ const getAddress = async()=>{
     console.log(result)
 }
 
+const signMsg = async () =>{
+      const eth = await transport();
+    console.log("signTx")
+    const path = "44'/60'/0'"
+    const msg = "abcd"
+    let signedTx = await eth.signPersonalMessage(path, msg)
+     signedTx = await eth.signPersonalMessage(path, msg)
+     signedTx = await eth.signPersonalMessage(path, msg)
+    console.log(signedTx);
+}
+
 
 const signTx = async () =>{
     const eth = await transport();
@@ -68,20 +79,12 @@ const resetRequestCount = async () =>{
     try{
       // await getAddress()
       // await showConfirmation()
-      await resetRequestCount()
+      // await resetRequestCount()
       // await signTx()
+      await signMsg()
     }catch(err){
         console.log(err);
     }
 
 })()
 
-
-//
-//
-// 1) unlock calls SignMessage
-// 2) 
-// 3) Unlock and lock require confirmation, Trade doesn't
-//
-//
-//
