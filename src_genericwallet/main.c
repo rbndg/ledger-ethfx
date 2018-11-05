@@ -1249,6 +1249,7 @@ unsigned int io_seproxyhal_touch_signMessage_ok(const bagl_element_t *e) {
     cx_ecfp_private_key_t privateKey;
     uint32_t tx = 0;
     uint8_t rLength, sLength, rOffset, sOffset;
+    incRequestCount();
     os_perso_derive_node_bip32(
         CX_CURVE_256K1, tmpCtx.messageSigningContext.bip32Path,
         tmpCtx.messageSigningContext.pathLength, privateKeyData, NULL);
