@@ -1546,8 +1546,8 @@ tokenDefinition_t* getKnownToken() {
         case CHAIN_KIND_GOCHAIN:
             numTokens = NUM_TOKENS_GOCHAIN;
             break;
-        case CHAIN_KIND_EOSCLASSIC:
-            numTokens = NUM_TOKENS_EOSCLASSIC;
+        case CHAIN_KIND_MIX:
+            numTokens = NUM_TOKENS_MIX;
             break;
         case CHAIN_KIND_ETHFINEX:
             numTokens = NUM_TOKENS_ETHEREUM;
@@ -1609,8 +1609,8 @@ tokenDefinition_t* getKnownToken() {
             case CHAIN_KIND_GOCHAIN:
                 currentToken = PIC(&TOKENS_GOCHAIN[i]);
                 break;
-            case CHAIN_KIND_EOSCLASSIC:
-                currentToken = PIC(&TOKENS_EOSCLASSIC[i]);
+            case CHAIN_KIND_MIX:
+                currentToken = PIC(&TOKENS_MIX[i]);
                 break;
             case CHAIN_KIND_ETHFINEX:
                 currentToken = PIC(&TOKENS_ETHEREUM[i]);
@@ -1679,7 +1679,10 @@ customStatus_e customProcessor(txContext_t *context) {
                 blockSize = 4;
             }
             else {
-                blockSize = 32 - dataContext.rawDataContext.fieldOffset;
+                if (!N_storage.contractDetails) {
+                  return CUSTOM_NOT_HANDLED;
+                }              
+                blockSize = 32 - (dataContext.rawDataContext.fieldOffset % 32);
             }
 
             // Sanity check

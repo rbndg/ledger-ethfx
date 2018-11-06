@@ -25,7 +25,7 @@ APP_LOAD_PARAMS= --curve secp256k1 $(COMMON_LOAD_PARAMS)
 
 APPVERSION_M=1
 APPVERSION_N=1
-APPVERSION_P=5
+APPVERSION_P=6
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APP_LOAD_FLAGS= --appFlags 0x40 --dep EthFinex:$(APPVERSION)
 
@@ -113,19 +113,17 @@ else ifeq ($(CHAIN),gochain)
 APP_LOAD_PARAMS += --path "44'/6060'"
 DEFINES += CHAINID_UPCASE=\"GOCHAIN\" CHAINID_COINNAME=\"GO\" CHAIN_KIND=CHAIN_KIND_GOCHAIN CHAIN_ID=60
 APPNAME = "GoChain"
-else ifeq ($(CHAIN),eosclassic)
-APP_LOAD_PARAMS += --path "44'/2018'"
-DEFINES += CHAINID_UPCASE=\"EOSCLASSIC\" CHAINID_COINNAME=\"EOSC\" CHAIN_KIND=CHAIN_KIND_EOSCLASSIC CHAIN_ID=20
-APPNAME = "EOSClassic"
+else ifeq ($(CHAIN),mix)
+APP_LOAD_PARAMS += --path "44'/76'"
+DEFINES += CHAINID_UPCASE=\"MIX\" CHAINID_COINNAME=\"MIX\" CHAIN_KIND=CHAIN_KIND_MIX CHAIN_ID=76
+APPNAME = "Mix"
 else ifeq ($(CHAIN),ethfinex)
 APP_LOAD_PARAMS += --path "44'"
 DEFINES += CHAINID_UPCASE=\"ETHFINEX\" CHAINID_COINNAME=\"EFX\" CHAIN_KIND=CHAIN_KIND_ETHFINEX CHAIN_ID=3750
 APPNAME = "Ethfinex"
-DEFINES_LIB=
-APP_LOAD_FLAGS=--appFlags 0x840
 else
 ifeq ($(filter clean,$(MAKECMDGOALS)),)
-$(error Unsupported CHAIN - use ethereum, ethereum_classic, expanse, poa, rsk, rsk_testnet, ubiq, wanchain, kusd, musicoin, pirl, akroma, atheios, callisto, ethersocial, ellaism, ether1, ethergem, gochain, eosclassic)
+$(error Unsupported CHAIN - use ethereum, ethereum_classic, expanse, poa, rsk, rsk_testnet, ubiq, wanchain, kusd, musicoin, pirl, akroma, atheios, callisto, ethersocial, ellaism, ether1, ethergem, gochain, mix)
 endif
 endif
 
@@ -220,4 +218,4 @@ include $(BOLOS_SDK)/Makefile.rules
 dep/%.d: %.c Makefile
 
 listvariants:
-	@echo VARIANTS CHAIN ethereum ethereum_classic expanse poa rsk rsk_testnet ubiq wanchain kusd pirl akroma atheios callisto ethersocial ether1 gochain # musicoin ellaism ethergem  eosclassic
+	@echo VARIANTS CHAIN ethereum ethereum_classic expanse poa rsk rsk_testnet ubiq wanchain kusd pirl akroma atheios callisto ethersocial ether1 gochain # musicoin ellaism ethergem  mix
