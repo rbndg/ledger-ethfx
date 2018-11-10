@@ -118,6 +118,21 @@ extern
 const bagl_icon_details_t C_blue_badge_gochain;
 #endif // GLYPH_blue_badge_gochain_BPP
 #endif // OS_IO_SEPROXYHAL
+#ifndef GLYPH_blue_badge_mix_BPP
+#define GLYPH_blue_badge_mix_WIDTH 50
+#define GLYPH_blue_badge_mix_HEIGHT 50
+#define GLYPH_blue_badge_mix_BPP 2
+extern
+unsigned int const C_blue_badge_mix_colors[]
+;
+extern	
+unsigned char const C_blue_badge_mix_bitmap[];
+#ifdef OS_IO_SEPROXYHAL
+#include "os_io_seproxyhal.h"
+extern
+const bagl_icon_details_t C_blue_badge_mix;
+#endif // GLYPH_blue_badge_mix_BPP
+#endif // OS_IO_SEPROXYHAL
 #ifndef GLYPH_blue_badge_musicoin_BPP
 #define GLYPH_blue_badge_musicoin_WIDTH 50
 #define GLYPH_blue_badge_musicoin_HEIGHT 50
@@ -343,21 +358,6 @@ extern
 const bagl_icon_details_t C_nanos_badge_ellaism;
 #endif // GLYPH_nanos_badge_ellaism_BPP
 #endif // OS_IO_SEPROXYHAL
-#ifndef GLYPH_nanos_badge_eosclassic_BPP
-#define GLYPH_nanos_badge_eosclassic_WIDTH 14
-#define GLYPH_nanos_badge_eosclassic_HEIGHT 14
-#define GLYPH_nanos_badge_eosclassic_BPP 1
-extern
-unsigned int const C_nanos_badge_eosclassic_colors[]
-;
-extern	
-unsigned char const C_nanos_badge_eosclassic_bitmap[];
-#ifdef OS_IO_SEPROXYHAL
-#include "os_io_seproxyhal.h"
-extern
-const bagl_icon_details_t C_nanos_badge_eosclassic;
-#endif // GLYPH_nanos_badge_eosclassic_BPP
-#endif // OS_IO_SEPROXYHAL
 #ifndef GLYPH_nanos_badge_ether1_BPP
 #define GLYPH_nanos_badge_ether1_WIDTH 14
 #define GLYPH_nanos_badge_ether1_HEIGHT 14
@@ -477,6 +477,21 @@ unsigned char const C_nanos_badge_kusd_bitmap[];
 extern
 const bagl_icon_details_t C_nanos_badge_kusd;
 #endif // GLYPH_nanos_badge_kusd_BPP
+#endif // OS_IO_SEPROXYHAL
+#ifndef GLYPH_nanos_badge_mix_BPP
+#define GLYPH_nanos_badge_mix_WIDTH 14
+#define GLYPH_nanos_badge_mix_HEIGHT 14
+#define GLYPH_nanos_badge_mix_BPP 1
+extern
+unsigned int const C_nanos_badge_mix_colors[]
+;
+extern	
+unsigned char const C_nanos_badge_mix_bitmap[];
+#ifdef OS_IO_SEPROXYHAL
+#include "os_io_seproxyhal.h"
+extern
+const bagl_icon_details_t C_nanos_badge_mix;
+#endif // GLYPH_nanos_badge_mix_BPP
 #endif // OS_IO_SEPROXYHAL
 #ifndef GLYPH_nanos_badge_musicoin_BPP
 #define GLYPH_nanos_badge_musicoin_WIDTH 14

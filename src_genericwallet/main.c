@@ -58,6 +58,7 @@ void finalizeParsing(bool);
 #define INS_SIGN_PERSONAL_MESSAGE 0x08
 #define INS_SHOW_CONFIRMATION 0xa1
 #define INS_RESET_REQUEST_COUNT 0xa2
+#define INS_SET_REQUEST_CONF 0xa3
 #define P1_CONFIRM 0x01
 #define P1_NON_CONFIRM 0x00
 #define P2_NO_CHAINCODE 0x00
@@ -73,7 +74,6 @@ void finalizeParsing(bool);
 #define OFFSET_CDATA 5
 
 #define WEI_TO_ETHER 18
-#define CONFIRM_REQUESTS 5
 
 static const uint8_t const TOKEN_TRANSFER_ID[] = { 0xa9, 0x05, 0x9c, 0xbb };
 typedef struct tokenContext_t {
@@ -201,12 +201,12 @@ const bagl_element_t* ui_menu_item_out_over(const bagl_element_t* e) {
 
 // Manage showing and hiding confirmation
 volatile int requestCount;
+volatile int confirmRequests;
 bool showUserConfirmation(void);
 void incRequestCount(void);
 void resetRequestCount(void);
 
 bool showUserConfirmation(){
-  int confirmRequests = CONFIRM_REQUESTS;
   if(requestCount == 0 || requestCount == confirmRequests){
     return true;
   } else {
@@ -215,7 +215,6 @@ bool showUserConfirmation(){
 }
 
 void incRequestCount(){
-  int confirmRequests = CONFIRM_REQUESTS;
   requestCount++;
   if(requestCount == confirmRequests){
     resetRequestCount();
@@ -1549,9 +1548,6 @@ tokenDefinition_t* getKnownToken() {
         case CHAIN_KIND_MIX:
             numTokens = NUM_TOKENS_MIX;
             break;
-        case CHAIN_KIND_ETHFINEX:
-            numTokens = NUM_TOKENS_ETHEREUM;
-            break;
     }
     for (i=0; i<numTokens; i++) {            
         switch(chainConfig->kind) {
@@ -1611,9 +1607,6 @@ tokenDefinition_t* getKnownToken() {
                 break;
             case CHAIN_KIND_MIX:
                 currentToken = PIC(&TOKENS_MIX[i]);
-                break;
-            case CHAIN_KIND_ETHFINEX:
-                currentToken = PIC(&TOKENS_ETHEREUM[i]);
                 break;
         } 
         if (os_memcmp(currentToken->address, tmpContent.txContent.destination, 20) == 0) {
@@ -2019,6 +2012,20 @@ void handleWillShowUserConfirmation(uint8_t p1, uint8_t p2, uint8_t *workBuffer,
 }
 
 
+void handleSetRequestConfirmation(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
+  UNUSED(p1);
+  UNUSED(p2);
+  UNUSED(flags);
+  if(dataLength == 100){
+    confirmRequests = 100000;
+  } else {
+    confirmRequests = dataLength;
+  }
+  G_io_apdu_buffer[0] = 0x01;
+  *tx = 1;
+  THROW(0x9000);
+}
+
 void handleResetRequestCount(uint8_t p1, uint8_t p2, uint8_t *workBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx) {
   UNUSED(p1);
   UNUSED(p2);
@@ -2163,6 +2170,10 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
 
         case INS_RESET_REQUEST_COUNT:
           handleResetRequestCount(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
+          break;
+
+        case INS_SET_REQUEST_CONF:
+          handleSetRequestConfirmation(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2], G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], flags, tx);
           break;
 
 #if 0
@@ -2408,7 +2419,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
 
                 if (N_storage.initialized != 0x01) {
                   internalStorage_t storage;
-                  storage.dataAllowed = 0x00;
+                  storage.dataAllowed = 0x01;
                   storage.contractDetails = 0x00;
                   storage.initialized = 0x01;
                   nvm_write(&N_storage, (void*)&storage, sizeof(internalStorage_t));
@@ -2416,6 +2427,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
                 dataAllowed = N_storage.dataAllowed;
                 contractDetails = N_storage.contractDetails;
                 requestCount = 0;
+                confirmRequests =5;
                 USB_power(0);
                 USB_power(1);
 
