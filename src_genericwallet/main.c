@@ -207,7 +207,7 @@ void incRequestCount(void);
 void resetRequestCount(void);
 
 bool showUserConfirmation(){
-  if(requestCount == 0 || requestCount == confirmRequests){
+  if(requestCount == 0 || requestCount > confirmRequests){
     return true;
   } else {
     return false;
@@ -215,10 +215,11 @@ bool showUserConfirmation(){
 }
 
 void incRequestCount(){
-  requestCount++;
-  if(requestCount == confirmRequests){
+  if(requestCount >= confirmRequests){
     resetRequestCount();
+    return;
   }
+  requestCount++;
 }
 
 void resetRequestCount(){
