@@ -128,6 +128,7 @@ union {
 
 volatile uint8_t dataAllowed;
 volatile uint8_t contractDetails;
+volatile int signingAmount;
 volatile char addressSummary[32];
 volatile bool dataPresent;
 volatile bool tokenProvisioned;
@@ -142,6 +143,7 @@ unsigned int ux_step_count;
 typedef struct internalStorage_t {
   unsigned char dataAllowed;
   unsigned char contractDetails;
+  int signingAmount;
   uint8_t initialized;
 } internalStorage_t;
 
@@ -291,6 +293,7 @@ const ux_menu_entry_t menu_settings[];
 //const ux_menu_entry_t menu_settings_browser[];
 const ux_menu_entry_t menu_settings_data[];
 const ux_menu_entry_t menu_settings_details[];
+const ux_menu_entry_t menu_settings_confirmations[];
 
 #ifdef HAVE_U2F
 
@@ -309,6 +312,12 @@ void menu_settings_details_change(unsigned int enabled) {
   UX_MENU_DISPLAY(0, menu_settings, NULL);
 }
 
+void menu_settings_amount_change(unsigned int amount) {
+  nvm_write(&N_storage.signingAmount, (void*)&amount, sizeof(int));
+  // go back to the menu entry
+  UX_MENU_DISPLAY(0, menu_settings, NULL);
+}
+
 // show the currently activated entry
 void menu_settings_data_init(unsigned int ignored) {
   UNUSED(ignored);
@@ -318,6 +327,29 @@ void menu_settings_data_init(unsigned int ignored) {
 void menu_settings_details_init(unsigned int ignored) {
   UNUSED(ignored);
   UX_MENU_DISPLAY(N_storage.contractDetails?1:0, menu_settings_details, NULL);
+}
+
+void menu_settings_confirmations_init(unsigned int ignored) {
+  UNUSED(ignored);
+  int index;
+  switch(N_storage.signingAmount){
+    case 1:
+      index = 0;
+      break;
+    case 5:
+      index = 1;
+      break;
+    case 10:
+      index = 2;
+      break;
+    case 100:
+      index = 3;
+      break;
+    case 1000:
+      index = 4;
+      break;
+  }
+  UX_MENU_DISPLAY(index, menu_settings_confirmations, NULL);
 }
 
 const ux_menu_entry_t menu_settings_data[] = {
@@ -332,8 +364,18 @@ const ux_menu_entry_t menu_settings_details[] = {
   UX_MENU_END
 };
 
+const ux_menu_entry_t menu_settings_confirmations[] = {
+  {NULL, menu_settings_amount_change, 1, NULL, "1 Eth", NULL, 0, 0},
+  {NULL, menu_settings_amount_change, 5, NULL, "5 Eth", NULL, 0, 0},
+  {NULL, menu_settings_amount_change, 10, NULL, "10 Eth", NULL, 0, 0},
+  {NULL, menu_settings_amount_change, 100, NULL, "100 Eth", NULL, 0, 0},
+  {NULL, menu_settings_amount_change, 10000, NULL, "All", NULL, 0, 0},
+  UX_MENU_END
+};
+
 const ux_menu_entry_t menu_settings[] = {
   {NULL, menu_settings_data_init, 0, NULL, "Contract data", NULL, 0, 0},
+  {NULL, menu_settings_confirmations_init, 0, NULL, "Signing Amount", NULL, 0, 0},
   {NULL, menu_settings_details_init, 0, NULL, "Display data", NULL, 0, 0},
   {menu_main, NULL, 1, &C_icon_back, "Back", NULL, 61, 40},
   UX_MENU_END
@@ -2422,6 +2464,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
                   internalStorage_t storage;
                   storage.dataAllowed = 0x01;
                   storage.contractDetails = 0x00;
+                  storage.signingAmount = 1000;
                   storage.initialized = 0x01;
                   nvm_write(&N_storage, (void*)&storage, sizeof(internalStorage_t));
                 }
