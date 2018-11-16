@@ -22,8 +22,8 @@
 #include "ethUtils.h"
 #include "uint256.h"
 #include "tokens.h"
+#include "rates.h"
 #include "chainConfig.h"
-
 #include "os_io_seproxyhal.h"
 #include "string.h"
 
@@ -207,7 +207,6 @@ volatile int confirmRequests;
 bool showUserConfirmation(void);
 void incRequestCount(void);
 void resetRequestCount(void);
-
 bool showUserConfirmation(){
   if(requestCount == 0 || requestCount > confirmRequests){
     return true;
@@ -228,6 +227,15 @@ void resetRequestCount(){
   requestCount = 0;
 }
 
+int getTickerRate(char* ticker){
+    const int numTokens = 10;
+    tickerRate_t tr;
+    for (int i=0; i<numTokens; i++) {     
+        if (TICKER_RATES[i].ticker == ticker) {
+          return TICKER_RATES[i].rate;
+        }
+    }
+}
 #if defined(TARGET_BLUE)
 
 unsigned int map_color(unsigned int color) {
@@ -1932,6 +1940,10 @@ void finalizeParsing(bool direct) {
   // Add amount in ethers or tokens
   convertUint256BE(tmpContent.txContent.value.value, tmpContent.txContent.value.length, &uint256);
   tostring256(&uint256, 10, (char *)(G_io_apdu_buffer + 100), 100);
+  uint256_t val;
+  uint8_t vx = 5;
+  convertUint256BE(&vx, sizeof(vx), &val);
+  bool z = gte256(&uint256,&val);
   i = 0;
   while (G_io_apdu_buffer[100 + i]) {
     i++;
@@ -1946,7 +1958,7 @@ void finalizeParsing(bool direct) {
     while (G_io_apdu_buffer[i]) {
         strings.common.fullAmount[tickerOffset + i] = G_io_apdu_buffer[i];
         i++;
-    }  
+    }
   strings.common.fullAmount[tickerOffset + i] = '\0';
   // Compute maximum fee
   convertUint256BE(tmpContent.txContent.gasprice.value, tmpContent.txContent.gasprice.length, &gasPrice);
@@ -2049,6 +2061,8 @@ void handleWillShowUserConfirmation(uint8_t p1, uint8_t p2, uint8_t *workBuffer,
   UNUSED(workBuffer);
   UNUSED(dataLength);
   UNUSED(flags);
+  int tickerRate = getTickerRate("BAT");
+  PRINTF("%d\n",tickerRate);
   G_io_apdu_buffer[0] = (showUserConfirmation() ? 0x01 : 0x00);
   *tx = 1;
   THROW(0x9000);
